@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:batch="http://www.mulesoft.org/schema/mule/batch" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd">
+	<file:config name="File_Config" doc:name="File Config" doc:id="c5857d0b-80e8-43e2-ad81-86b5fadccb71" >
+		<file:connection workingDir="/Volumes/Nzieng SSD1/Nzieng SSD1/IT/MuleSoft/muleRepExamples/batchProcessing2" />
+	</file:config>
+	<flow name="batchprocessing2Flow" doc:id="c25fc4cb-8097-4386-8148-24332d2d70ce" >
+		<file:listener doc:name="On New or Updated File" doc:id="25cc8544-18b4-4dc9-ab08-db59dd66e404" config-ref="File_Config" directory="/Volumes/Nzieng SSD1/Nzieng SSD1/IT/MuleSoft/muleRepExamples/batchProcessing2/src/main/resources/input" autoDelete="true" outputMimeType="application/csv">
+			<scheduling-strategy >
+				<fixed-frequency frequency="5000" />
+			</scheduling-strategy>
+		</file:listener>
+		<ee:transform doc:name="Transform Message" doc:id="176b54dc-9a0e-42e2-ba9f-2b34eaec9ffb" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload groupBy $.OrderID pluck $]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="9e60703b-cad2-4b0d-b35e-ae86a3053713" message="#[payload]"/>
+		<batch:job jobName="batchprocessing2Batch_Job" doc:id="cccf70dc-a87d-4f28-bbbc-1696ac07a887" maxFailedRecords="4">
+			<batch:process-records >
+				<batch:step name="Batch_Step" doc:id="bd5f93fc-bb60-403b-87b0-91d69346731a" >
+					<logger level="INFO" doc:name="Logger" doc:id="2d866d58-27e5-4fc2-8f83-c2d6f8b918fc" message="#[payload]"/>
+				</batch:step>
+			</batch:process-records>
+			<batch:on-complete >
+				<logger level="INFO" doc:name="Logger" doc:id="3b8de29b-fc4b-45ab-be78-bd4566b1bb8e" message="Batch job completed"/>
+			</batch:on-complete>
+		</batch:job>
+	</flow>
+</mule>
